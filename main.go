@@ -45,7 +45,13 @@ func Watcher(filePath string, fileChanges chan string, wg *sync.WaitGroup) {
 			log.Printf("Error statting file: %s", err)
 			break
 		}
+
 		newModTime := fileInfo.ModTime()
+
+		if lastModTime.IsZero() {
+			lastModTime = newModTime
+		}
+
 		if newModTime.After(lastModTime) {
 			lastModTime = newModTime
 			fileChanges <- filePath
