@@ -7,6 +7,11 @@
 - Supports verbose mode for detailed logging of file change events.
 
 # Installation
+```bash
+go install github.com/Kamandlou/watcher@latest
+```
+
+# Build from source
 1. Clone the repository:
     ```bash
     git clone https://github.com/Kamandlou/watcher.git
@@ -31,6 +36,7 @@ watcher [flags]
 - types: Specify the file types to watch, separated by commas (default: .go).
 - command: Specify the command to execute when a file changes (default: go run main.go).
 - verbose: Enable verbose mode to print detailed file change events.
+- help: Display help information.
 
 ## Example Usage
 ```bash
@@ -48,4 +54,4 @@ watcher --path="/path/to/directory" --types=".js,.html" --command="npm run build
 Contributions are welcome! If you find any issues or have suggestions for improvements, please open an issue or submit a pull request on [GitHub](https://github.com/Kamandlou/watcher).
 
 # License
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT [License](LICENSE) - see the [License](LICENSE) file for details.
