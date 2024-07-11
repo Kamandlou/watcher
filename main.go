@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
-	"sync"
 	"time"
 )
 
@@ -31,9 +30,7 @@ func GetFiles(root string, fileTypes []string) ([]string, error) {
 }
 
 // Watcher watches a single file for modifications
-func Watcher(filePath string, fileChanges chan string, wg *sync.WaitGroup) {
-	defer wg.Done()
-
+func Watcher(filePath string, fileChanges chan string) {
 	var lastModTime time.Time
 	for {
 		fileInfo, err := os.Stat(filePath)
@@ -89,12 +86,12 @@ func main() {
 	}
 
 	fileChanges := make(chan string)
-	wg := sync.WaitGroup{}
+
+	defer close(fileChanges)
 
 	// Start watcher for each file
 	for _, file := range files {
-		wg.Add(1)
-		go Watcher(file, fileChanges, &wg)
+		go Watcher(file, fileChanges)
 	}
 
 	go func() {
@@ -106,6 +103,6 @@ func main() {
 		}
 	}()
 
-	wg.Wait()
-	close(fileChanges)
+	// Block main goroutine forever.
+	<-make(chan struct{})
 }
