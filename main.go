@@ -25,7 +25,7 @@ var mode uint8
 var (
 	path    string
 	types   string
-	commnad string
+	command string
 	verbose bool
 	period  uint64
 	delay   uint64
@@ -36,7 +36,7 @@ var files []string
 func main() {
 	flag.StringVar(&path, "path", "./", "Specify the directory path")
 	flag.StringVar(&types, "types", "", "Specify file types to watch")
-	flag.StringVar(&commnad, "command", "", "Specify the command to execute when a file changes")
+	flag.StringVar(&command, "command", "", "Specify the command to execute when a file changes")
 	flag.BoolVar(&verbose, "verbose", false, "Enable verbose mode")
 	flag.Uint64Var(&period, "period", 0, "Set period time to watch")
 	flag.Uint64Var(&delay, "delay", 0, "Set delay time to execute command")
@@ -158,7 +158,7 @@ func InitFsnotifyMode(wg *sync.WaitGroup) {
 				}
 				if event.Has(fsnotify.Write) {
 					Logger(event.Name)
-					go ExecuteCommand(commnad)
+					go ExecuteCommand(command)
 				}
 			case err, ok := <-watcher.Errors:
 				if !ok {
@@ -193,7 +193,7 @@ func InitModificationMode(wg *sync.WaitGroup) {
 			if verbose {
 				Logger(filePath)
 			}
-			go ExecuteCommand(commnad)
+			go ExecuteCommand(command)
 		}
 	}()
 }
