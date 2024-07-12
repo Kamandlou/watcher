@@ -36,7 +36,7 @@ var files []string
 func main() {
 	flag.StringVar(&path, "path", "./", "Specify the directory path")
 	flag.StringVar(&types, "types", "", "Specify file types to watch")
-	flag.StringVar(&commnad, "commnad", "", "Specify the command to execute when a file changes")
+	flag.StringVar(&commnad, "command", "", "Specify the command to execute when a file changes")
 	flag.BoolVar(&verbose, "verbose", false, "Enable verbose mode")
 	flag.Uint64Var(&period, "period", 0, "Set period time to watch")
 	flag.Uint64Var(&delay, "delay", 0, "Set delay time to execute command")
