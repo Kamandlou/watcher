@@ -14,7 +14,7 @@ import (
 	"github.com/fsnotify/fsnotify"
 )
 
-// Returns a list of files in the given directory with types filter
+// GetDirectoryFiles returns a list of files in the given directory with types filter
 func GetDirectoryFiles(root string, fileTypes []string) ([]string, error) {
 	var files []string
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
@@ -37,7 +37,7 @@ func GetDirectoryFiles(root string, fileTypes []string) ([]string, error) {
 	return files, err
 }
 
-// Watches a single file for modifications
+// FileWatcher watches a single file for modifications
 func FileWatcher(filePath string, fileChanges chan string, wg *sync.WaitGroup) {
 	defer wg.Done()
 
