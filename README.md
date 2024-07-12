@@ -37,6 +37,8 @@ watcher [flags]
 - command: Specify the command to execute when a file changes (default: go run main.go).
 - verbose: Enable verbose mode to print detailed file change events.
 - help: Display help information.
+- delay: Set delay time to execute command
+- period: Set period time to watch
 
 ## Example Usage
 ```bash
