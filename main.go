@@ -14,7 +14,70 @@ import (
 	"github.com/fsnotify/fsnotify"
 )
 
-// GetDirectoryFiles returns a list of files in the given directory with types filter
+const (
+	MODIFICATION uint8 = 1
+	FSNOTIFY     uint8 = 2
+)
+
+var mode uint8
+
+// Define flags variables
+var (
+	path    string
+	types   string
+	commnad string
+	verbose bool
+	period  uint64
+	delay   uint64
+)
+
+var files []string
+
+func main() {
+	flag.StringVar(&path, "path", "./", "Specify the directory path")
+	flag.StringVar(&types, "types", "", "Specify file types to watch")
+	flag.StringVar(&commnad, "commnad", "", "Specify the command to execute when a file changes")
+	flag.BoolVar(&verbose, "verbose", false, "Enable verbose mode")
+	flag.Uint64Var(&period, "period", 0, "Set period time to watch")
+	flag.Uint64Var(&delay, "delay", 0, "Set delay time to execute command")
+
+	flag.Parse()
+
+	mode = FSNOTIFY
+
+	if period > 0 {
+		mode = MODIFICATION
+	}
+
+	pathInfo, err := os.Stat(path)
+
+	if err != nil {
+		log.Fatalln("Path is incorrect: ", err)
+	}
+
+	if pathInfo.IsDir() {
+		files, err = GetDirectoryFiles(path, strings.Split(types, ","))
+		if err != nil {
+			log.Fatalln("There is an error in getting the list of files: ", err)
+		}
+	} else {
+		files = append(files, path)
+	}
+
+	wg := sync.WaitGroup{}
+
+	switch mode {
+	case FSNOTIFY:
+		InitFsnotifyMode(&wg)
+		break
+	case MODIFICATION:
+		InitModificationMode(&wg)
+	}
+
+	wg.Wait()
+}
+
+// GetDirectoryFiles Returns a list of files in the given directory with types filter
 func GetDirectoryFiles(root string, fileTypes []string) ([]string, error) {
 	var files []string
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
@@ -25,19 +88,17 @@ func GetDirectoryFiles(root string, fileTypes []string) ([]string, error) {
 			if len(fileTypes) > 0 {
 				if slices.Contains(fileTypes, filepath.Ext(path)) {
 					files = append(files, path)
-				} else {
-					return nil
 				}
+			} else {
+				files = append(files, path)
 			}
-
-			files = append(files, path)
 		}
 		return nil
 	})
 	return files, err
 }
 
-// FileWatcher watches a single file for modifications
+// FileWatcher Watches a single file for modifications
 func FileWatcher(filePath string, fileChanges chan string, wg *sync.WaitGroup) {
 	defer wg.Done()
 
@@ -135,72 +196,4 @@ func InitModificationMode(wg *sync.WaitGroup) {
 			go ExecuteCommand(commnad)
 		}
 	}()
-}
-
-const (
-	MODIFICATION uint8 = 1
-	FSNOTIFY     uint8 = 2
-)
-
-var MODE uint8
-
-var (
-	path    string
-	types   string
-	commnad string
-	verbose bool
-	period  uint64
-	delay   uint64
-)
-
-var files []string
-
-func main() {
-	flag.StringVar(&path, "path", "./", "Specify the directory path")
-	flag.StringVar(&types, "types", "", "Specify file types to watch")
-	flag.StringVar(&commnad, "command", "", "Specify the command to execute when a file changes")
-	flag.BoolVar(&verbose, "verbose", false, "Enable verbose mode")
-	flag.Uint64Var(&period, "period", 0, "Set period time to watch")
-	flag.Uint64Var(&delay, "delay", 0, "Set delay time to execute command")
-
-	flag.Parse()
-
-	if period == 0 {
-		MODE = FSNOTIFY
-	} else {
-		MODE = MODIFICATION
-	}
-
-	pathInfo, err := os.Stat(path)
-
-	if err != nil {
-		log.Fatalln("Path is incorrect: ", err)
-	}
-
-	if pathInfo.IsDir() {
-		if types == "" {
-			files, err = GetDirectoryFiles(path, nil)
-		} else {
-			files, err = GetDirectoryFiles(path, strings.Split(types, ","))
-		}
-
-		if err != nil {
-			log.Fatalln("There is an error in getting the list of files: ", err)
-		}
-
-	} else {
-		files = append(files, path)
-	}
-
-	wg := sync.WaitGroup{}
-
-	switch MODE {
-	case FSNOTIFY:
-		InitFsnotifyMode(&wg)
-
-	case MODIFICATION:
-		InitModificationMode(&wg)
-	}
-
-	wg.Wait()
 }
