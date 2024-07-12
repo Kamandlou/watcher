@@ -56,7 +56,15 @@ func main() {
 	}
 
 	if pathInfo.IsDir() {
-		files, err = GetDirectoryFiles(path, strings.Split(types, ","))
+		var fileTypes []string
+		if types == "" {
+			fileTypes = nil
+		} else {
+			fileTypes = strings.Split(types, ",")
+		}
+
+		files, err = GetDirectoryFiles(path, fileTypes)
+
 		if err != nil {
 			log.Fatalln("There is an error in getting the list of files: ", err)
 		}
