@@ -82,6 +82,8 @@ func main() {
 		InitModificationMode(&wg)
 	}
 
+	log.Printf("Start Watching...")
+
 	wg.Wait()
 }
 
