@@ -32,13 +32,13 @@ To run the File Watcher, use the following command:
 watcher [flags]
 ```
 ## Flags
-- path: Specify the directory path to monitor (default: ./).
-- types: Specify the file types to watch, separated by commas (default: .go).
-- command: Specify the command to execute when a file changes (default: go run main.go).
+- path: Specify the directory path to monitor.
 - verbose: Enable verbose mode to print detailed file change events.
+- command: Specify the command to execute when a file changes.
+- delay: Set delay time to execute command.
+- types: Specify the file types to watch, separated by commas.
+- period: Set period time to watch.
 - help: Display help information.
-- delay: Set delay time to execute command
-- period: Set period time to watch
 
 ## Example Usage
 ```bash
