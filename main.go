@@ -139,6 +139,9 @@ func FileWatcher(filePath string, fileChanges chan string, wg *sync.WaitGroup) {
 
 // ExecuteCommand executes a shell command
 func ExecuteCommand(command string) error {
+	if delay != 0 {
+		time.Sleep(time.Duration(delay) * time.Millisecond)
+	}
 	cmd := exec.Command("sh", "-c", command)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -181,12 +184,7 @@ func InitFsnotifyMode(wg *sync.WaitGroup) {
 					if verbose {
 						Logger(event.Name)
 					}
-					go func() {
-						if delay != 0 {
-							time.Sleep(time.Duration(delay) * time.Millisecond)
-						}
-						ExecuteCommand(command)
-					}()
+					go ExecuteCommand(command)
 				}
 			case err, ok := <-watcher.Errors:
 				if !ok {
@@ -221,10 +219,7 @@ func InitModificationMode(wg *sync.WaitGroup) {
 			if verbose {
 				Logger(filePath)
 			}
-			go func() {
-				time.Sleep(time.Duration(delay) * time.Millisecond)
-				ExecuteCommand(command)
-			}()
+			go ExecuteCommand(command)
 		}
 	}()
 }
