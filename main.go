@@ -37,7 +37,7 @@ func main() {
 	flag.StringVar(&path, "path", "./", "Specify the directory path")
 	flag.StringVar(&types, "types", "", "Specify file types to watch")
 	flag.StringVar(&command, "command", "", "Specify the command to execute when a file changes")
-	flag.BoolVar(&verbose, "verbose", false, "Enable verbose mode")
+	flag.BoolVar(&verbose, "verbose", true, "Enable verbose mode")
 	flag.Uint64Var(&period, "period", 0, "Set period time to watch")
 	flag.Uint64Var(&delay, "delay", 0, "Set delay time to execute command")
 
@@ -157,18 +157,34 @@ func InitFsnotifyMode(wg *sync.WaitGroup) {
 	}
 
 	go func() {
+		var duplication = make(map[string]time.Time)
+		var duplicationTime = 5 * time.Millisecond
 		for {
 			select {
 			case event, ok := <-watcher.Events:
 				if !ok {
 					return
 				}
+
 				if event.Has(fsnotify.Write) {
+					if value, exists := duplication[event.Name]; exists {
+						duplication[event.Name] = time.Now()
+
+						var duration = time.Since(value)
+						if duration < duplicationTime {
+							continue
+						}
+					} else {
+						duplication[event.Name] = time.Now()
+					}
+
 					if verbose {
 						Logger(event.Name)
 					}
 					go func() {
-						time.Sleep(time.Duration(delay) * time.Millisecond)
+						if delay != 0 {
+							time.Sleep(time.Duration(delay) * time.Millisecond)
+						}
 						ExecuteCommand(command)
 					}()
 				}
