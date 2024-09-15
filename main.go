@@ -41,6 +41,9 @@ func main() {
 	flag.Uint64Var(&period, "period", 0, "Set period time to watch")
 	flag.Uint64Var(&delay, "delay", 0, "Set delay time to execute command")
 
+	// Convert target path to OS-specific format
+	path = filepath.FromSlash(path)
+
 	flag.Parse()
 
 	mode = FSNOTIFY
@@ -77,7 +80,6 @@ func main() {
 	switch mode {
 	case FSNOTIFY:
 		InitFsnotifyMode(&wg)
-		break
 	case MODIFICATION:
 		InitModificationMode(&wg)
 	}
@@ -96,7 +98,8 @@ func GetDirectoryFiles(root string, fileTypes []string) ([]string, error) {
 		}
 		if !info.IsDir() {
 			if len(fileTypes) > 0 {
-				if slices.Contains(fileTypes, filepath.Ext(path)) {
+				// handle file case-insensitive on Windows -> for example .txt and .TXT are considered the same
+				if slices.Contains(fileTypes, strings.ToLower(filepath.Ext(path))) {
 					files = append(files, path)
 				}
 			} else {
@@ -141,13 +144,20 @@ func FileWatcher(filePath string, fileChanges chan string, wg *sync.WaitGroup) {
 
 // ExecuteCommand executes a shell command
 func ExecuteCommand(command string) error {
-	if delay != 0 {
-		time.Sleep(time.Duration(delay) * time.Millisecond)
-	}
-	cmd := exec.Command("sh", "-c", command)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	return cmd.Run()
+    if delay != 0 {
+        time.Sleep(time.Duration(delay) * time.Millisecond)
+    }
+
+    var cmd *exec.Cmd
+    if os.Getenv("OS") == "Windows_NT" {
+        cmd = exec.Command("cmd.exe", "/C", command)
+    } else {
+        cmd = exec.Command("sh", "-c", command)
+    }
+
+    cmd.Stdout = os.Stdout
+    cmd.Stderr = os.Stderr
+    return cmd.Run()
 }
 
 func Logger(filePath string) {
